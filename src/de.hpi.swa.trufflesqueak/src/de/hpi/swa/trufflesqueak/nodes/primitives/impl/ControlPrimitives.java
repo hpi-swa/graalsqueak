@@ -8,6 +8,7 @@ package de.hpi.swa.trufflesqueak.nodes.primitives.impl;
 import java.lang.management.ManagementFactory;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -1364,7 +1365,7 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
 
     @Override
     public List<? extends AbstractPrimitiveNode> getSingletonPrimitives() {
-        return List.of(
+        return Arrays.asList(
                         PrimQuickReturnTrueNode.SINGLETON,
                         PrimQuickReturnFalseNode.SINGLETON,
                         PrimQuickReturnNilNode.SINGLETON,

@@ -985,7 +985,7 @@ public final class MiscellaneousPrimitives extends AbstractPrimitiveFactoryHolde
 
     @Override
     public List<? extends AbstractPrimitiveNode> getSingletonPrimitives() {
-        return List.of(
+        return Arrays.asList(
                         PrimSecondClockNode.SINGLETON,
                         PrimMaxIdentityHashNode.SINGLETON,
                         PrimUTCClockNode.SINGLETON,
