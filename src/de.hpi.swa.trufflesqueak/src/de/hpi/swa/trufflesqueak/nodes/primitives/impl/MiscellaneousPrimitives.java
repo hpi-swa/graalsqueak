@@ -20,6 +20,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -52,6 +53,7 @@ import de.hpi.swa.trufflesqueak.nodes.accessing.SqueakObjectSizeNode;
 import de.hpi.swa.trufflesqueak.nodes.plugins.SqueakFFIPrims.AbstractFFIPrimitiveNode;
 import de.hpi.swa.trufflesqueak.nodes.primitives.AbstractPrimitiveFactoryHolder;
 import de.hpi.swa.trufflesqueak.nodes.primitives.AbstractPrimitiveNode;
+import de.hpi.swa.trufflesqueak.nodes.primitives.AbstractSingletonPrimitiveNode;
 import de.hpi.swa.trufflesqueak.nodes.primitives.PrimitiveFallbacks.BinaryPrimitiveFallback;
 import de.hpi.swa.trufflesqueak.nodes.primitives.PrimitiveFallbacks.DecimaryPrimitiveFallback;
 import de.hpi.swa.trufflesqueak.nodes.primitives.PrimitiveFallbacks.DuodecimaryPrimitiveFallback;
@@ -72,11 +74,6 @@ import de.hpi.swa.trufflesqueak.util.MiscUtils;
 import de.hpi.swa.trufflesqueak.util.ObjectGraphUtils;
 
 public final class MiscellaneousPrimitives extends AbstractPrimitiveFactoryHolder {
-
-    @Override
-    public List<NodeFactory<? extends AbstractPrimitiveNode>> getFactories() {
-        return MiscellaneousPrimitivesFactory.getFactories();
-    }
 
     private abstract static class AbstractSignalAtPrimitiveNode extends AbstractPrimitiveNode {
 
@@ -485,13 +482,18 @@ public final class MiscellaneousPrimitives extends AbstractPrimitiveFactoryHolde
         }
     }
 
-    @GenerateNodeFactory
     @SqueakPrimitive(indices = 137)
-    protected abstract static class PrimSecondClockNode extends AbstractPrimitiveNode {
+    protected static final class PrimSecondClockNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimSecondClockNode SINGLETON = new PrimSecondClockNode();
 
-        @Specialization
-        protected static final long doClock(@SuppressWarnings("unused") final Object receiver) {
+        @Override
+        public Object execute(final VirtualFrame frame) {
             return MiscUtils.toSqueakSecondsLocal(System.currentTimeMillis() / 1000);
+        }
+
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
         }
     }
 
@@ -732,14 +734,19 @@ public final class MiscellaneousPrimitives extends AbstractPrimitiveFactoryHolde
         }
     }
 
-    @GenerateNodeFactory
     @NodeInfo(cost = NodeCost.NONE)
     @SqueakPrimitive(indices = 176)
-    protected abstract static class PrimMaxIdentityHashNode extends AbstractPrimitiveNode {
+    protected static final class PrimMaxIdentityHashNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimMaxIdentityHashNode SINGLETON = new PrimMaxIdentityHashNode();
 
-        @Specialization
-        protected static final long doMaxHash(@SuppressWarnings("unused") final Object receiver) {
-            return AbstractSqueakObjectWithClassAndHash.IDENTITY_HASH_MASK;
+        @Override
+        public Object execute(final VirtualFrame frame) {
+            return (long) AbstractSqueakObjectWithClassAndHash.IDENTITY_HASH_MASK;
+        }
+
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
         }
     }
 
@@ -767,23 +774,33 @@ public final class MiscellaneousPrimitives extends AbstractPrimitiveFactoryHolde
         }
     }
 
-    @GenerateNodeFactory
     @SqueakPrimitive(indices = 240)
-    protected abstract static class PrimUTCClockNode extends AbstractPrimitiveNode {
+    protected static final class PrimUTCClockNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimUTCClockNode SINGLETON = new PrimUTCClockNode();
 
-        @Specialization
-        protected static final long doTime(@SuppressWarnings("unused") final Object receiver) {
+        @Override
+        public Object execute(final VirtualFrame frame) {
             return MiscUtils.toSqueakMicrosecondsUTC(System.currentTimeMillis() * 1000);
+        }
+
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
         }
     }
 
-    @GenerateNodeFactory
     @SqueakPrimitive(indices = 241)
-    protected abstract static class PrimLocalMicrosecondsClockNode extends AbstractPrimitiveNode {
+    protected static final class PrimLocalMicrosecondsClockNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimLocalMicrosecondsClockNode SINGLETON = new PrimLocalMicrosecondsClockNode();
 
-        @Specialization
-        protected static final long doTime(@SuppressWarnings("unused") final Object receiver) {
+        @Override
+        public Object execute(final VirtualFrame frame) {
             return MiscUtils.toSqueakMicrosecondsLocal(System.currentTimeMillis() * 1000);
+        }
+
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
         }
     }
 
@@ -959,5 +976,19 @@ public final class MiscellaneousPrimitives extends AbstractPrimitiveFactoryHolde
         protected static final NilObject doGetOutOfBounds(final Object receiver, final long index) {
             return NilObject.SINGLETON;
         }
+    }
+
+    @Override
+    public List<NodeFactory<? extends AbstractPrimitiveNode>> getFactories() {
+        return MiscellaneousPrimitivesFactory.getFactories();
+    }
+
+    @Override
+    public List<? extends AbstractPrimitiveNode> getSingletonPrimitives() {
+        return List.of(
+                        PrimSecondClockNode.SINGLETON,
+                        PrimMaxIdentityHashNode.SINGLETON,
+                        PrimUTCClockNode.SINGLETON,
+                        PrimLocalMicrosecondsClockNode.SINGLETON);
     }
 }

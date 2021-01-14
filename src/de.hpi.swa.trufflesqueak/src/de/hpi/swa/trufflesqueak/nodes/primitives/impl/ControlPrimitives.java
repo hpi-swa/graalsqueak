@@ -64,6 +64,7 @@ import de.hpi.swa.trufflesqueak.nodes.accessing.SqueakObjectAt0Node;
 import de.hpi.swa.trufflesqueak.nodes.accessing.SqueakObjectChangeClassOfToNode;
 import de.hpi.swa.trufflesqueak.nodes.accessing.SqueakObjectClassNode;
 import de.hpi.swa.trufflesqueak.nodes.accessing.SqueakObjectIdentityNode;
+import de.hpi.swa.trufflesqueak.nodes.context.ArgumentNodes.AbstractArgumentNode;
 import de.hpi.swa.trufflesqueak.nodes.context.frame.FrameStackPointerIncrementNode;
 import de.hpi.swa.trufflesqueak.nodes.context.frame.FrameStackPushNode;
 import de.hpi.swa.trufflesqueak.nodes.dispatch.DispatchEagerlyNode;
@@ -74,6 +75,7 @@ import de.hpi.swa.trufflesqueak.nodes.dispatch.DispatchSendNode.DispatchSendSynt
 import de.hpi.swa.trufflesqueak.nodes.dispatch.DispatchSendNodeFactory.DispatchSendSelectorNodeGen;
 import de.hpi.swa.trufflesqueak.nodes.primitives.AbstractPrimitiveFactoryHolder;
 import de.hpi.swa.trufflesqueak.nodes.primitives.AbstractPrimitiveNode;
+import de.hpi.swa.trufflesqueak.nodes.primitives.AbstractSingletonPrimitiveNode;
 import de.hpi.swa.trufflesqueak.nodes.primitives.PrimitiveFallbacks.BinaryPrimitiveFallback;
 import de.hpi.swa.trufflesqueak.nodes.primitives.PrimitiveFallbacks.QuaternaryPrimitiveFallback;
 import de.hpi.swa.trufflesqueak.nodes.primitives.PrimitiveFallbacks.QuinaryPrimitiveFallback;
@@ -83,6 +85,7 @@ import de.hpi.swa.trufflesqueak.nodes.primitives.PrimitiveFallbacks.TernaryPrimi
 import de.hpi.swa.trufflesqueak.nodes.primitives.PrimitiveFallbacks.UnaryPrimitiveFallback;
 import de.hpi.swa.trufflesqueak.nodes.primitives.PrimitiveNodeFactory;
 import de.hpi.swa.trufflesqueak.nodes.primitives.SqueakPrimitive;
+import de.hpi.swa.trufflesqueak.nodes.primitives.impl.ControlPrimitivesFactory.PrimLoadInstVarNodeGen;
 import de.hpi.swa.trufflesqueak.nodes.process.GetActiveProcessNode;
 import de.hpi.swa.trufflesqueak.nodes.process.LinkProcessToListNode;
 import de.hpi.swa.trufflesqueak.nodes.process.RemoveProcessFromListNode;
@@ -94,11 +97,6 @@ import de.hpi.swa.trufflesqueak.util.LogUtils;
 import de.hpi.swa.trufflesqueak.util.MiscUtils;
 
 public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
-
-    @Override
-    public List<NodeFactory<? extends AbstractPrimitiveNode>> getFactories() {
-        return ControlPrimitivesFactory.getFactories();
-    }
 
     protected abstract static class AbstractPrimitiveStackIncrementNode extends AbstractPrimitiveNode {
         @Child protected FrameStackPointerIncrementNode frameStackPointerIncrementNode;
@@ -580,13 +578,18 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         }
     }
 
-    @GenerateNodeFactory
     @SqueakPrimitive(indices = 112)
-    protected abstract static class PrimBytesLeftNode extends AbstractPrimitiveNode {
+    protected static final class PrimBytesLeftNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimBytesLeftNode SINGLETON = new PrimBytesLeftNode();
 
-        @Specialization
-        protected static final long doBytesLeft(@SuppressWarnings("unused") final Object receiver) {
+        @Override
+        public Object execute(final VirtualFrame frame) {
             return MiscUtils.runtimeFreeMemory();
+        }
+
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
         }
     }
 
@@ -615,7 +618,7 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         public static final String SELECTOR_NAME = "exitToDebugger";
 
         @Specialization
-        protected static final Object doDebugger(@SuppressWarnings("unused") final Object receiver) {
+        protected static final Object doDebugger(final Object receiver) {
             return receiver;
         }
     }
@@ -798,15 +801,20 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         }
     }
 
-    @GenerateNodeFactory
     @SqueakPrimitive(indices = 131)
-    protected abstract static class PrimIncrementalGCNode extends AbstractPrimitiveNode {
+    protected static final class PrimIncrementalGCNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimIncrementalGCNode SINGLETON = new PrimIncrementalGCNode();
 
-        @Specialization
-        protected static final long doIncrementalGC(@SuppressWarnings("unused") final Object receiver) {
+        @Override
+        public Object execute(final VirtualFrame frame) {
             /* Cannot force incremental GC in Java, suggesting a normal GC instead. */
             MiscUtils.systemGC();
             return MiscUtils.runtimeFreeMemory();
+        }
+
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
         }
     }
 
@@ -1218,77 +1226,118 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         }
     }
 
-    @GenerateNodeFactory
     @NodeInfo(cost = NodeCost.NONE)
     @SqueakPrimitive(indices = 257)
-    protected abstract static class PrimQuickReturnTrueNode extends AbstractPrimitiveNode {
-        @Specialization
-        protected static final boolean returnValue(@SuppressWarnings("unused") final Object receiver) {
+    protected static final class PrimQuickReturnTrueNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimQuickReturnTrueNode SINGLETON = new PrimQuickReturnTrueNode();
+
+        @Override
+        public Object execute(final VirtualFrame frame) {
             return BooleanObject.TRUE;
         }
+
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
+        }
     }
 
-    @GenerateNodeFactory
     @NodeInfo(cost = NodeCost.NONE)
     @SqueakPrimitive(indices = 258)
-    protected abstract static class PrimQuickReturnFalseNode extends AbstractPrimitiveNode {
-        @Specialization
-        protected static final boolean returnValue(@SuppressWarnings("unused") final Object receiver) {
+    protected static final class PrimQuickReturnFalseNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimQuickReturnFalseNode SINGLETON = new PrimQuickReturnFalseNode();
+
+        @Override
+        public Object execute(final VirtualFrame frame) {
             return BooleanObject.FALSE;
         }
+
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
+        }
     }
 
-    @GenerateNodeFactory
     @NodeInfo(cost = NodeCost.NONE)
     @SqueakPrimitive(indices = 259)
-    protected abstract static class PrimQuickReturnNilNode extends AbstractPrimitiveNode {
-        @Specialization
-        protected static final NilObject returnValue(@SuppressWarnings("unused") final Object receiver) {
+    protected static final class PrimQuickReturnNilNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimQuickReturnNilNode SINGLETON = new PrimQuickReturnNilNode();
+
+        @Override
+        public Object execute(final VirtualFrame frame) {
             return NilObject.SINGLETON;
         }
+
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
+        }
     }
 
-    @GenerateNodeFactory
     @NodeInfo(cost = NodeCost.NONE)
     @SqueakPrimitive(indices = 260)
-    protected abstract static class PrimQuickReturnMinusOneNode extends AbstractPrimitiveNode {
-        @Specialization
-        protected static final long returnValue(@SuppressWarnings("unused") final Object receiver) {
+    protected static final class PrimQuickReturnMinusOneNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimQuickReturnMinusOneNode SINGLETON = new PrimQuickReturnMinusOneNode();
+
+        @Override
+        public Object execute(final VirtualFrame frame) {
             return -1L;
         }
+
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
+        }
     }
 
-    @GenerateNodeFactory
     @NodeInfo(cost = NodeCost.NONE)
     @SqueakPrimitive(indices = 261)
-    protected abstract static class PrimQuickReturnZeroNode extends AbstractPrimitiveNode {
-        @Specialization
-        protected static final long returnValue(@SuppressWarnings("unused") final Object receiver) {
+    protected static final class PrimQuickReturnZeroNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimQuickReturnZeroNode SINGLETON = new PrimQuickReturnZeroNode();
+
+        @Override
+        public Object execute(final VirtualFrame frame) {
             return 0L;
         }
+
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
+        }
     }
 
-    @GenerateNodeFactory
     @NodeInfo(cost = NodeCost.NONE)
     @SqueakPrimitive(indices = 262)
-    protected abstract static class PrimQuickReturnOneNode extends AbstractPrimitiveNode {
-        @Specialization
-        protected static final long returnValue(@SuppressWarnings("unused") final Object receiver) {
+    protected static final class PrimQuickReturnOneNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimQuickReturnOneNode SINGLETON = new PrimQuickReturnOneNode();
+
+        @Override
+        public Object execute(final VirtualFrame frame) {
             return 1L;
         }
-    }
 
-    @GenerateNodeFactory
-    @NodeInfo(cost = NodeCost.NONE)
-    @SqueakPrimitive(indices = 263)
-    protected abstract static class PrimQuickReturnTwoNode extends AbstractPrimitiveNode {
-        @Specialization
-        protected static final long returnValue(@SuppressWarnings("unused") final Object receiver) {
-            return 2L;
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
         }
     }
 
-    @GenerateNodeFactory
+    @NodeInfo(cost = NodeCost.NONE)
+    @SqueakPrimitive(indices = 263)
+    protected static final class PrimQuickReturnTwoNode extends AbstractSingletonPrimitiveNode {
+        private static final PrimQuickReturnTwoNode SINGLETON = new PrimQuickReturnTwoNode();
+
+        @Override
+        public Object execute(final VirtualFrame frame) {
+            return 2L;
+        }
+
+        @Override
+        protected AbstractPrimitiveNode getSingleton() {
+            return SINGLETON;
+        }
+    }
+
     @NodeInfo(cost = NodeCost.NONE)
     public abstract static class PrimLoadInstVarNode extends AbstractPrimitiveNode {
         @Child private SqueakObjectAt0Node at0Node = SqueakObjectAt0Node.create();
@@ -1298,9 +1347,32 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
             this.variableIndex = variableIndex;
         }
 
+        public static PrimLoadInstVarNode create(final long variableIndex, final AbstractArgumentNode[] arguments) {
+            return PrimLoadInstVarNodeGen.create(variableIndex, arguments);
+        }
+
         @Specialization
         protected final Object doReceiverVariable(final Object receiver) {
             return at0Node.execute(receiver, variableIndex);
         }
+    }
+
+    @Override
+    public List<NodeFactory<? extends AbstractPrimitiveNode>> getFactories() {
+        return ControlPrimitivesFactory.getFactories();
+    }
+
+    @Override
+    public List<? extends AbstractPrimitiveNode> getSingletonPrimitives() {
+        return List.of(
+                        PrimQuickReturnTrueNode.SINGLETON,
+                        PrimQuickReturnFalseNode.SINGLETON,
+                        PrimQuickReturnNilNode.SINGLETON,
+                        PrimQuickReturnMinusOneNode.SINGLETON,
+                        PrimQuickReturnZeroNode.SINGLETON,
+                        PrimQuickReturnOneNode.SINGLETON,
+                        PrimQuickReturnTwoNode.SINGLETON,
+                        PrimBytesLeftNode.SINGLETON,
+                        PrimIncrementalGCNode.SINGLETON);
     }
 }

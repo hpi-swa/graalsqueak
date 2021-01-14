@@ -38,6 +38,7 @@ import de.hpi.swa.trufflesqueak.nodes.dispatch.LookupClassNode;
 import de.hpi.swa.trufflesqueak.nodes.dispatch.LookupSelectorNode;
 import de.hpi.swa.trufflesqueak.nodes.primitives.AbstractPrimitiveNode;
 import de.hpi.swa.trufflesqueak.nodes.primitives.PrimitiveNodeFactory;
+import de.hpi.swa.trufflesqueak.nodes.primitives.impl.ControlPrimitives;
 import de.hpi.swa.trufflesqueak.nodes.primitives.impl.ControlPrimitives.PrimExitToDebuggerNode;
 import de.hpi.swa.trufflesqueak.nodes.primitives.impl.ControlPrimitivesFactory;
 import de.hpi.swa.trufflesqueak.util.FrameAccess;
@@ -471,7 +472,7 @@ public final class SendBytecodes {
                     final AbstractPrimitiveNode node;
                     if (PrimitiveNodeFactory.isLoadInstVarPrimitive(primitiveIndex)) {
                         assert numArguments == 0;
-                        node = ControlPrimitivesFactory.PrimLoadInstVarNodeFactory.create(primitiveIndex - PrimitiveNodeFactory.PRIMITIVE_LOAD_INST_VAR_LOWER_INDEX,
+                        node = ControlPrimitives.PrimLoadInstVarNode.create(primitiveIndex - PrimitiveNodeFactory.PRIMITIVE_LOAD_INST_VAR_LOWER_INDEX,
                                         new AbstractArgumentNode[]{AbstractArgumentNode.create(-1, true)});
                     } else {
                         final NodeFactory<? extends AbstractPrimitiveNode> nodeFactory;

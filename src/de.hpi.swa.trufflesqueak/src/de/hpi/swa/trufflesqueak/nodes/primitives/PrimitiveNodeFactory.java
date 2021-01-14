@@ -55,7 +55,6 @@ import de.hpi.swa.trufflesqueak.nodes.primitives.impl.ArrayStreamPrimitives;
 import de.hpi.swa.trufflesqueak.nodes.primitives.impl.BlockClosurePrimitives;
 import de.hpi.swa.trufflesqueak.nodes.primitives.impl.ContextPrimitives;
 import de.hpi.swa.trufflesqueak.nodes.primitives.impl.ControlPrimitives;
-import de.hpi.swa.trufflesqueak.nodes.primitives.impl.ControlPrimitivesFactory;
 import de.hpi.swa.trufflesqueak.nodes.primitives.impl.IOPrimitives;
 import de.hpi.swa.trufflesqueak.nodes.primitives.impl.MiscellaneousPrimitives;
 import de.hpi.swa.trufflesqueak.nodes.primitives.impl.StoragePrimitives;
@@ -68,6 +67,7 @@ public final class PrimitiveNodeFactory {
     private static final int MAX_PRIMITIVE_INDEX = 575;
     @CompilationFinal(dimensions = 1) private static final byte[] NULL_MODULE_NAME = NullPlugin.class.getSimpleName().getBytes();
 
+    private static final EconomicMap<Integer, AbstractPrimitiveNode> SINGLETON_PRIMITIVE_TABLE = EconomicMap.create();
     private static final EconomicMap<Integer, EconomicMap<Integer, NodeFactory<? extends AbstractPrimitiveNode>>> PRIMITIVE_TABLE = EconomicMap.create(MAX_PRIMITIVE_INDEX);
     private static final EconomicMap<String, EconomicMap<String, EconomicMap<Integer, NodeFactory<? extends AbstractPrimitiveNode>>>> PLUGIN_MAP = EconomicMap.create();
 
@@ -129,7 +129,12 @@ public final class PrimitiveNodeFactory {
             return createPrimLoadInstVarNode(primitiveIndex, useStack);
         } else {
             assert primitiveIndex <= MAX_PRIMITIVE_INDEX;
-            return createInstance(method, useStack, argsProvided, PRIMITIVE_TABLE.get(primitiveIndex));
+            final AbstractPrimitiveNode primitiveNode = SINGLETON_PRIMITIVE_TABLE.get(primitiveIndex);
+            if (primitiveNode != null) {
+                return primitiveNode;
+            } else {
+                return createInstance(method, useStack, argsProvided, PRIMITIVE_TABLE.get(primitiveIndex));
+            }
         }
     }
 
@@ -172,14 +177,12 @@ public final class PrimitiveNodeFactory {
     }
 
     private static AbstractPrimitiveNode createPrimLoadInstVarNode(final int primitiveIndex, final boolean useStack) {
-        return ControlPrimitivesFactory.PrimLoadInstVarNodeFactory.create(primitiveIndex - PRIMITIVE_LOAD_INST_VAR_LOWER_INDEX,
+        return ControlPrimitives.PrimLoadInstVarNode.create(primitiveIndex - PRIMITIVE_LOAD_INST_VAR_LOWER_INDEX,
                         new AbstractArgumentNode[]{ArgumentNode.create(0, useStack)});
     }
 
     public static NodeFactory<? extends AbstractPrimitiveNode> getNodeFactory(final int primitiveIndex, final int numArguments) {
-        if (isLoadInstVarPrimitive(primitiveIndex)) {
-            return ControlPrimitivesFactory.PrimLoadInstVarNodeFactory.getInstance();
-        }
+        assert !isLoadInstVarPrimitive(primitiveIndex);
         final EconomicMap<Integer, NodeFactory<? extends AbstractPrimitiveNode>> map = PRIMITIVE_TABLE.get(primitiveIndex);
         if (map == null) {
             return null;
@@ -260,15 +263,19 @@ public final class PrimitiveNodeFactory {
 
     private static void fillPrimitiveTable(final AbstractPrimitiveFactoryHolder[] primitiveFactories) {
         for (final AbstractPrimitiveFactoryHolder primitiveFactory : primitiveFactories) {
-            final List<? extends NodeFactory<? extends AbstractPrimitiveNode>> nodeFactories = primitiveFactory.getFactories();
-            for (final NodeFactory<? extends AbstractPrimitiveNode> nodeFactory : nodeFactories) {
+            for (final NodeFactory<? extends AbstractPrimitiveNode> nodeFactory : primitiveFactory.getFactories()) {
                 final Class<? extends AbstractPrimitiveNode> primitiveClass = nodeFactory.getNodeClass();
                 final SqueakPrimitive primitive = primitiveClass.getAnnotation(SqueakPrimitive.class);
-                if (primitive == null) {
-                    continue;
-                }
                 for (final int index : primitive.indices()) {
                     addEntryToPrimitiveTable(index, nodeFactory);
+                }
+            }
+            for (final AbstractPrimitiveNode singleton : primitiveFactory.getSingletonPrimitives()) {
+                final Class<? extends AbstractPrimitiveNode> primitiveClass = singleton.getClass();
+                final SqueakPrimitive primitive = primitiveClass.getAnnotation(SqueakPrimitive.class);
+                for (final int index : primitive.indices()) {
+                    assert !SINGLETON_PRIMITIVE_TABLE.containsKey(index);
+                    SINGLETON_PRIMITIVE_TABLE.put(index, singleton);
                 }
             }
         }
@@ -299,6 +306,7 @@ public final class PrimitiveNodeFactory {
 
     private static void addEntryToPrimitiveTable(final int index, final NodeFactory<? extends AbstractPrimitiveNode> nodeFactory) {
         assert index <= MAX_PRIMITIVE_INDEX : "primitive table array not large enough";
+        assert !SINGLETON_PRIMITIVE_TABLE.containsKey(index);
         EconomicMap<Integer, NodeFactory<? extends AbstractPrimitiveNode>> map = PRIMITIVE_TABLE.get(index);
         if (map == null) {
             map = EconomicMap.create();
