@@ -131,6 +131,7 @@ public final class PrimitiveNodeFactory {
             assert primitiveIndex <= MAX_PRIMITIVE_INDEX;
             final AbstractPrimitiveNode primitiveNode = SINGLETON_PRIMITIVE_TABLE.get(primitiveIndex);
             if (primitiveNode != null) {
+                assert method.getNumArgs() == 0;
                 return primitiveNode;
             } else {
                 return createInstance(method, useStack, argsProvided, PRIMITIVE_TABLE.get(primitiveIndex));
@@ -145,7 +146,13 @@ public final class PrimitiveNodeFactory {
             return createPrimLoadInstVarNode(primitiveIndex, false);
         } else {
             assert primitiveIndex <= MAX_PRIMITIVE_INDEX;
-            return createInstance(PRIMITIVE_TABLE.get(primitiveIndex), numArgs, argsProvided);
+            final AbstractPrimitiveNode primitiveNode = SINGLETON_PRIMITIVE_TABLE.get(primitiveIndex);
+            if (primitiveNode != null) {
+                assert numArgs == 0;
+                return primitiveNode;
+            } else {
+                return createInstance(PRIMITIVE_TABLE.get(primitiveIndex), numArgs, argsProvided);
+            }
         }
     }
 
@@ -274,7 +281,7 @@ public final class PrimitiveNodeFactory {
                 final Class<? extends AbstractPrimitiveNode> primitiveClass = singleton.getClass();
                 final SqueakPrimitive primitive = primitiveClass.getAnnotation(SqueakPrimitive.class);
                 for (final int index : primitive.indices()) {
-                    assert !SINGLETON_PRIMITIVE_TABLE.containsKey(index);
+                    assert !SINGLETON_PRIMITIVE_TABLE.containsKey(index) && !PRIMITIVE_TABLE.containsKey(index);
                     SINGLETON_PRIMITIVE_TABLE.put(index, singleton);
                 }
             }
