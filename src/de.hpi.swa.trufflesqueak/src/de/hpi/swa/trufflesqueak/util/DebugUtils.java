@@ -10,6 +10,7 @@ import java.lang.management.LockInfo;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
+import java.util.List;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.Truffle;
@@ -36,7 +37,18 @@ import de.hpi.swa.trufflesqueak.nodes.process.GetActiveProcessNode;
  * Helper functions for debugging purposes.
  */
 public final class DebugUtils {
-    public static final boolean UNDER_DEBUG = ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
+    public static final boolean UNDER_DEBUG = isDebugging(ManagementFactory.getRuntimeMXBean().getInputArguments());
+
+    private static boolean isDebugging(final List<String> arguments) {
+        for (final String argument : arguments) {
+            if ("-Xdebug".equals(argument)) {
+                return true;
+            } else if (argument.startsWith("-agentlib:jdwp")) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public static void dumpState() {
         CompilerAsserts.neverPartOfCompilation("For debugging purposes only");
