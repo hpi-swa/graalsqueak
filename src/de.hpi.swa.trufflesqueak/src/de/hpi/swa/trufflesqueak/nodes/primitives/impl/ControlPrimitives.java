@@ -584,7 +584,7 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         private static final PrimBytesLeftNode SINGLETON = new PrimBytesLeftNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             return MiscUtils.runtimeFreeMemory();
         }
 
@@ -807,7 +807,7 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         private static final PrimIncrementalGCNode SINGLETON = new PrimIncrementalGCNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             /* Cannot force incremental GC in Java, suggesting a normal GC instead. */
             MiscUtils.systemGC();
             return MiscUtils.runtimeFreeMemory();
@@ -1233,7 +1233,7 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         private static final PrimQuickReturnTrueNode SINGLETON = new PrimQuickReturnTrueNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             return BooleanObject.TRUE;
         }
 
@@ -1249,7 +1249,7 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         private static final PrimQuickReturnFalseNode SINGLETON = new PrimQuickReturnFalseNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             return BooleanObject.FALSE;
         }
 
@@ -1265,7 +1265,7 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         private static final PrimQuickReturnNilNode SINGLETON = new PrimQuickReturnNilNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             return NilObject.SINGLETON;
         }
 
@@ -1281,7 +1281,7 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         private static final PrimQuickReturnMinusOneNode SINGLETON = new PrimQuickReturnMinusOneNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             return -1L;
         }
 
@@ -1297,7 +1297,7 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         private static final PrimQuickReturnZeroNode SINGLETON = new PrimQuickReturnZeroNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             return 0L;
         }
 
@@ -1313,7 +1313,7 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         private static final PrimQuickReturnOneNode SINGLETON = new PrimQuickReturnOneNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             return 1L;
         }
 
@@ -1329,7 +1329,7 @@ public final class ControlPrimitives extends AbstractPrimitiveFactoryHolder {
         private static final PrimQuickReturnTwoNode SINGLETON = new PrimQuickReturnTwoNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             return 2L;
         }
 

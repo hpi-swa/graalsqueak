@@ -20,7 +20,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -487,7 +486,7 @@ public final class MiscellaneousPrimitives extends AbstractPrimitiveFactoryHolde
         private static final PrimSecondClockNode SINGLETON = new PrimSecondClockNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             return MiscUtils.toSqueakSecondsLocal(System.currentTimeMillis() / 1000);
         }
 
@@ -740,7 +739,7 @@ public final class MiscellaneousPrimitives extends AbstractPrimitiveFactoryHolde
         private static final PrimMaxIdentityHashNode SINGLETON = new PrimMaxIdentityHashNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             return (long) AbstractSqueakObjectWithClassAndHash.IDENTITY_HASH_MASK;
         }
 
@@ -779,7 +778,7 @@ public final class MiscellaneousPrimitives extends AbstractPrimitiveFactoryHolde
         private static final PrimUTCClockNode SINGLETON = new PrimUTCClockNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             return MiscUtils.toSqueakMicrosecondsUTC(System.currentTimeMillis() * 1000);
         }
 
@@ -794,7 +793,7 @@ public final class MiscellaneousPrimitives extends AbstractPrimitiveFactoryHolde
         private static final PrimLocalMicrosecondsClockNode SINGLETON = new PrimLocalMicrosecondsClockNode();
 
         @Override
-        public Object execute(final VirtualFrame frame) {
+        public Object execute() {
             return MiscUtils.toSqueakMicrosecondsLocal(System.currentTimeMillis() * 1000);
         }
 
